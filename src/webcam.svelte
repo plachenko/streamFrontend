@@ -1,6 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
 
+	export let wsSrc;
+
     let video: HTMLVideoElement;
 	let prevData;
     
@@ -15,6 +17,8 @@
 	let ctx: CanvasRenderingContext2D;
 
     onMount(() => {
+		console.log('webcam Mounted');
+
 		canvas.width = width;
 		canvas.height = height;
 		ctx = canvas.getContext('2d');
@@ -23,7 +27,7 @@
 			video.srcObject = stream;
 			step();
 		}).catch((error)=>{
-			console.log(error)
+			console.log(error);
 		});
 
     });
