@@ -27,6 +27,10 @@
 		status: 0
 	}
 
+	let obsInfo = {
+		status: 0
+	}
+
 	onMount(() => {
 		// Check if OBS Browser...
 		if(window.obsstudio){
@@ -39,7 +43,11 @@
 		setNotification();
 
 		document.addEventListener('keyup', (e)=>{
+			// console.log(e.which);
 			switch(e.which){
+				case 88:
+					sendCmd('stopVids');
+					break;
 				case 32:
 					sendCmd('sendVid');
 					break;
@@ -53,14 +61,11 @@
 	}
 
 	function connect(){
-		console.log('connecting...');
-
 		if(!wsInfo.ip || !wsInfo.port) return;
 		
 		ws = new WebSocket(`ws://${wsInfo.ip}:${wsInfo.port}/OBSBrowser`);
 		ws.addEventListener('open', (e) => {
 			// step();
-			console.log('connecting');
 			connected = true;
 			error = false;
 		});
@@ -85,6 +90,12 @@
 					cmdBtns = data.payload;
 					cmdBtns.unshift('random');
 					break;
+				case 'cmd':
+					if(data.payload == 'stopVids'){
+						vidSrcArr = {};
+						vidSrcNames = [];
+					}
+					break;
 				case 'msg':
 					if(data.payload == 'barrelRoll'){
 						// barrelRoll();
@@ -98,8 +109,12 @@
 					break;
 				case 'video':
 					if(!vidSrcArr[data.payload.name]){
-						console.log(vidSrcArr);
-						vidSrcArr[data.payload.name] = [];
+						const obj = {
+							imgb: data.payload.imgb,
+							buffer: []
+						}
+
+						vidSrcArr[data.payload.name] = obj;
 
 						const vidObj = {
 							id: vidNum,
@@ -110,7 +125,7 @@
 						vidNum++;
 					}
 
-					vidSrcArr[data.payload.name].push(data.payload.buffer.data);
+					vidSrcArr[data.payload.name].buffer.push(data.payload.buffer.data);
 
 					break;
 			}
@@ -123,6 +138,7 @@
 			payload: e
 		}
 
+		// console.log(obj);
 		ws.send(JSON.stringify(obj));
 	}
 
@@ -137,7 +153,11 @@
 
 		delete vidSrcArr[e.detail];
 
-		// console.log(vidSrcNames, vidSrcArr);
+		// console.log(vidSrcArr);
+	}
+
+	function toggleStream(){
+
 	}
 </script>
 
@@ -155,7 +175,8 @@
 			<VidSrc
 				on:ended={endEvt}
 				bind:name={vid.name}
-				bind:bdata={vidSrcArr[vid.name]} 
+				bind:imgb={vidSrcArr[vid.name].imgb}
+				bind:bdata={vidSrcArr[vid.name].buffer} 
 				/>
 		{/each}
 	{:else}
@@ -171,6 +192,12 @@
 			</div>
 		{:else if curItem == 'opts'}
 			<form>
+				<!--
+				<fieldset style="float:left;">
+					<legend>OBS Connection</legend>
+					<input type="button" on:click={toggleStream} bind:value={obsInfo.connect} />
+				</fieldset>
+				-->
 				<fieldset style="float:left;">
 					<legend>Websocket connection info</legend>
 
@@ -226,7 +253,7 @@
 		flex-direction: row;
 		flex: 1;
 		float: left;
-		width: 85%;
+		/* width: 85%; */
 		height: 100%;
 	}
 	.btn{

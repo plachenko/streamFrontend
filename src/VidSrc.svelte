@@ -1,5 +1,7 @@
 <svelte:options immutable/>
 <script lang="ts">
+	import gsap from "gsap/all";
+
     import { onMount } from "svelte";
 	import { createEventDispatcher } from "svelte";
 
@@ -36,6 +38,7 @@
 			ctx = can.getContext('2d');
 			video.style.visibility = "hidden";
 		}
+		video.volume = .02;
 
 		video.addEventListener('play', (e) => {
 			if(!imgb) return;
@@ -63,29 +66,58 @@
 
 			srcBuffer.addEventListener('update', (e)=>{
 				updateBuffer();
-				video.play();
 			});
 
 			srcBuffer.addEventListener('updateend', (e)=>{
 				updateBuffer();
 				if(!srcBuffer.updating && ms.readyState === 'open'){
 					ms.endOfStream();
-					video.play();
+					// let play = video.play();
+					// gsap.to(video, {x: -300, webkitFilter:"hue-rotate(-170deg) blur(7px) drop-shadow(0px 0px 30px red)", scaleX: .5, scaleY: .5, delay: .5});
+					/*
+					if(play !== undefined){
+						play.then(e => {
+						})
+						.catch(err=>{
+							console.log(err);
+						})
+					}
+					*/
 				}
 			});
 			rendered = true;
 		});
 
 		video.src = URL.createObjectURL(ms);
-		// const rWid = ~~(Math.random()*window.innerWidth);
-		// const rHei = ~~(Math.random()*window.innerHeight);
-		// container.style.left =  ((rWid + 100) > window.innerWidth  ? (rWid - 100) : rWid )  + "px";
-		// container.style.top =  ((rHei + 100) > window.innerHeight  ? (rHei - 100) : rHei )  + "px";
+		/*
+		const rWid = ~~(Math.random()*window.innerWidth);
+		const rHei = ~~(Math.random()*window.innerHeight);
+		container.style.left =  ((rWid + 100) > window.innerWidth  ? (rWid - 100) : rWid )  + "px";
+		container.style.top =  ((rHei + 100) > window.innerHeight  ? (rHei - 100) : rHei )  + "px";
+		*/
 
 		video.playbackRate = 1;
 
 		// container.style.top = ~~(Math.random()*window.innerHeight) + "px";
     });
+
+	function openup(){
+		let play = video.play();
+
+		if(play !== undefined){
+			play.then(e => {
+				/*
+				video.pause();
+				setTimeout(()=>{
+					video.play();
+				}, 2500);
+				*/
+			})
+			.catch(err=>{
+				console.log(err);
+			})
+		}
+	}
 
 	function showVideo(chunk){
 		chunk.forEach(el => {	
@@ -111,6 +143,9 @@
 </script>
 
 <div class="vidContainer" bind:this={container}>
+	<div>
+
+	</div>
 	{#if imgb}
 		<canvas bind:this={can} />
 	{/if}
@@ -118,7 +153,6 @@
 		on:ended={endEvt}
 		bind:this={video}
 		autoplay={true}
-		muted={true}
 		/>
 </div>
 
@@ -131,6 +165,7 @@
 		position: absolute;
 	}
 	.vidContainer video{
+		/* visibility: hidden; */
 		width: 100%;
 		height: 100%;
 		position: absolute;
